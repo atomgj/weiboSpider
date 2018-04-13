@@ -9,6 +9,8 @@ var _str1 = 'https://weibo.com/p/aj/v6/mblog/mbloglist?ajwvr=6&domain=100505&top
 
 function getURL() {
     var i, j;
+
+    //若抓取超过50页，微博服务器缓存溢出，会暂时拒绝服务
     for (i = 0; i < pageNo; i++) {
         urls.push({type: 0, url: str1 + i + str2});
         for (j = 0; j < 2; j++) {
