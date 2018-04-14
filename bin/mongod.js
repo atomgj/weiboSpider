@@ -4,7 +4,7 @@ var url = "mongodb://localhost:27017/";
 
 var dbFactory = {};
 
-dbFactory.timestamp = {};
+dbFactory.data = {};
 dbFactory.saveInDB = function(param, callback) {
     mongoClient.connect(url, function (err, db) {
         if (err) throw err;
@@ -29,10 +29,7 @@ dbFactory.findAll = function(){
         var collection = dbo.collection("财上海");
 
         collection.find().toArray(function (err, docs) {
-            var i;
-            for(i = 0;i<docs.length; i++){
-                dbFactory.timestamp[docs[i].date] = docs[i].date;
-            }
+            dbFactory.data = docs;
             db.close();
         });
     });

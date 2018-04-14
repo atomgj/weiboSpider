@@ -4,7 +4,14 @@ var cookie = "YF-Ugrow-G0=9642b0b34b4c0d569ed7a372f8823a8e; login_sid_t=9899f8e8
 var cookieService = require('./bin/cookieService.js');
 var dbFactory = require('./bin/mongod.js');
 var urls = require('./bin/urlService.js');
-var timestamp = dbFactory.timestamp;
+var timestamp = {};
+
+function getTimestamp() {
+    var i, data = dbFactory.data;
+    for (i = 0; i < data.length; i++) {
+        timestamp[data[i].date] = data[i].date;
+    }
+}
 
 function getScriptContent(param) {
     var url = param;
@@ -85,7 +92,7 @@ function parseDom($) {
         if ($longtext.length) {
             var action_data = $longtext.attr('action-data');
             getLongText(date, action_data);
-        }else{
+        } else {
             var content = $content.text().replace(/\n/g, '');
             if (content) {
                 if (!timestamp[date]) {
@@ -102,6 +109,7 @@ function parseDom($) {
 }
 
 function init() {
+    getTimestamp();
     cookieService.setCookie(cookie);
     var i;
     for (i = 0; i < urls.length; i++) {
