@@ -1,11 +1,10 @@
 var cheerio = require('cheerio');
 var request = require('superagent');
-var cookie = "YF-Ugrow-G0=8751d9166f7676afdce9885c6d31cd61; login_sid_t=78f468e6e97f5edb9266adc274471365; cross_origin_proto=SSL; YF-V5-G0=8d4d030c65d0ecae1543b50b93b47f0c; _s_tentry=passport.weibo.com; Apache=9450790365086.54.1523605099188; SINAGLOBAL=9450790365086.54.1523605099188; ULV=1523605099195:1:1:1:9450790365086.54.1523605099188:; appkey=; WB_register_version=60527d22cd000e4c; UOR=,,login.sina.com.cn; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5Glo-iJV08v41KLZqdIsCL5JpX5K2hUgL.Foe7eKe7eheXShB2dJLoIEXLxK-L1hqL1K.LxKqL1KBLBoqLxKqLBoqLBo-LxKqLB-qL1h-LxKMLBKqL1hBt; ALF=1555141493; SSOLoginState=1523605493; SCF=Ai_IBHiH7Ud5Gj0d1BFgBxDa8eUCRZpLoprCH1eHxHfqlsZKQv1iawZp9we9Tf9n60wUZP_ihIm-UYxn-bfKmsY.; SUB=_2A2531C-mDeRhGeVO6lER8C3IzziIHXVUoAZurDV8PUNbmtBeLVrtkW9NTViPFCJowOpOhfgrRCFtrmpQ8TwskuD6; SUHB=0JvwoOqcNHgJl1; un=gj1827@163.com; wvr=6; YF-Page-G0=0dccd34751f5184c59dfe559c12ac40a; WBtopGlobal_register_version=2018041315";
+var cookie = "YF-Ugrow-G0=9642b0b34b4c0d569ed7a372f8823a8e; login_sid_t=9899f8e80d8db89db7f9625d21b4f349; cross_origin_proto=SSL; YF-V5-G0=bb389e7e25cccb1fadd4b1334ab013c1; _s_tentry=passport.weibo.com; Apache=7129269806772.944.1523607966698; SINAGLOBAL=7129269806772.944.1523607966698; ULV=1523607966705:1:1:1:7129269806772.944.1523607966698:; SSOLoginState=1523607984; un=gj1827@163.com; wvr=6; YF-Page-G0=d52660735d1ea4ed313e0beb68c05fc5; WBtopGlobal_register_version=2018041316; TC-V5-G0=866fef700b11606a930f0b3297300d95; TC-Page-G0=b1761408ab251c6e55d3a11f8415fc72; TC-Ugrow-G0=370f21725a3b0b57d0baaf8dd6f16a18; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5Glo-iJV08v41KLZqdIsCL5JpX5KMhUgL.Foe7eKe7eheXShB2dJLoIEXLxK-L1-eL1hqLxKBLB.2LB.2LxKqL1-eL1h.LxKqLBoMLBo2LxK-LB.2LBKqt; ALF=1555250068; SCF=Ai_IBHiH7Ud5Gj0d1BFgBxDa8eUCRZpLoprCH1eHxHfq0_KlqhtLO-JfmOvx02GCevIJeYc5R3kJKKdOscHV6p8.; SUB=_2A2531nhGDeRhGeVO6lER8C3IzziIHXVUou6OrDV8PUNbmtANLRLskW9NTViPFKCzZjzkhrCNhDZX8LCGK_9v43pi; SUHB=04W-jaS586oJvJ; UOR=,,login.sina.com.cn";
 var cookieService = require('./bin/cookieService.js');
-var saveInDB = require('./bin/mongod.js');
+var dbFactory = require('./bin/mongod.js');
 var urls = require('./bin/urlService.js');
-
-var timestamp = {};
+var timestamp = dbFactory.timestamp;
 
 function getScriptContent(param) {
     var url = param;
@@ -64,8 +63,8 @@ function getLongText(date, param) {
                 }
                 var $ = cheerio.load(contentHTML || "<div/>");
                 if (!timestamp[date]) {
-                    console.log('###############long###############');
-                    saveInDB({
+                    console.log(date);
+                    dbFactory.saveInDB({
                         date: date,
                         content: $.text()
                     });
@@ -90,7 +89,8 @@ function parseDom($) {
             var content = $content.text().replace(/\n/g, '');
             if (content) {
                 if (!timestamp[date]) {
-                    saveInDB({
+                    console.log(date);
+                    dbFactory.saveInDB({
                         date: date,
                         content: $content.text().replace(/\n/g, '')
                     });

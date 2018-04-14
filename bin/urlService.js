@@ -11,7 +11,7 @@ function getURL() {
     var i, j;
 
     //若抓取超过50页，微博服务器缓存溢出，会暂时拒绝服务
-    for (i = 0; i < pageNo; i++) {
+    for (i = 0; i < 5; i++) {
         urls.push({type: 0, url: str1 + i + str2});
         for (j = 0; j < 2; j++) {
             urls.push({type: 1, url: _str1 + j + _str2 + i + _str3 + new Date().getTime()})
