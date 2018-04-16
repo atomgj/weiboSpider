@@ -6,16 +6,6 @@ var urls = require('./bin/urlService');
 var timestamp = {};
 
 /**
- * 缓存已抓取的时间戳，避免重复写入
- */
-function getTimestamp() {
-    var i, data = dbFactory.data;
-    for (i = 0; i < data.length; i++) {
-        timestamp[data[i].date] = data[i].date;
-    }
-}
-
-/**
  * 首次显示内容来源于dom文档中script标签
  */
 function getScriptContent(url) {
@@ -57,8 +47,6 @@ function getJsonContent(url) {
 
 /**
  * 抓取长微博
- * @param date
- * @param param
  */
 function getLongText(date, param) {
     var url = "https://weibo.com/p/aj/mblog/getlongtext?ajwvr=6&" + param + "&__rnd=" + new Date().getTime();
@@ -75,8 +63,8 @@ function getLongText(date, param) {
                     contentHTML = rep.body.data.html;
                 }
                 var $ = cheerio.load(contentHTML || "<div/>");
+                console.log(date, timestamp[date]?"exist":"no exist");
                 if (!timestamp[date]) {
-                    console.log(date);
                     dbFactory.saveInDB({
                         date: date,
                         content: $.text()
@@ -86,7 +74,6 @@ function getLongText(date, param) {
             }
         });
 }
-
 
 function parseDom($) {
     $('[node-type="feed_content"]').each(function (i, elem) {
@@ -99,8 +86,8 @@ function parseDom($) {
             var action_data = $longtext.attr('action-data');
             getLongText(date, action_data);
         } else {
+            console.log(date, timestamp[date]?"exist":"no exist");
             if (!timestamp[date]) {
-                console.log(date);
                 dbFactory.saveInDB({
                     date: date,
                     content: $content.text().replace(/\n/g, '')
@@ -111,16 +98,27 @@ function parseDom($) {
     });
 }
 
-function init() {
-    getTimestamp();
-    var i;
-    for (i = 0; i < urls.length; i++) {
-        if (!urls[i].type) {
-            getScriptContent(urls[i].url);
-        } else {
-            getJsonContent(urls[i].url);
+function start() {
+    /**
+     * 缓存已抓取的时间戳，避免重复写入
+     */
+    function callback() {
+        var i, data = dbFactory.data;
+        console.log(data.length);
+        for (i = 0; i < data.length; i++) {
+            timestamp[data[i].date] = data[i].date;
+        }
+
+        for (i = 0; i < urls.length; i++) {
+            if (!urls[i].type) {
+                getScriptContent(urls[i].url);
+            } else {
+                getJsonContent(urls[i].url);
+            }
         }
     }
+
+    dbFactory.findAll(callback);
 }
 
-init();
+start();
