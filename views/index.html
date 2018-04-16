@@ -2,20 +2,22 @@
 <html>
 <header>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="renderer" content="webkit">
-    <meta name="viewport" content="initial-scale=1,minimum-scale=1">
-    <title>财上海</title>
+    <title>财上海的微博</title>
+    <style>
+        li{
+            font-size: 12px;
+        }
+    </style>
 </header>
 <body>
 <div>
-    <strong><%=blogs.length%></strong>
+    <strong><%=data.length%></strong>
     <ul>
-        <%for(var i in blogs){if(!blogs[i].content)continue;%>
+        <%for(var i in data){if(!data[i].content)continue;%>
         <li>
             <div>
-                <span><%=blogs[i].date%></span>
-                <div><%=blogs[i].content%></div>
+                <span><%=data[i].date%></span>
+                <div><%=data[i].content%></div>
         </li>
         <%}%>
     </ul>
