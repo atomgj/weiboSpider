@@ -61,10 +61,10 @@ var distinctData = function (data) {
 
 var writeTxt = function (blogs) {
 
-    var i, file = '财上海.txt';
+    var i, file = 'dist/财上海.txt';
     fw.write(file);
 
-    var header = ["序号", "年", "年月", "年月日", "时", "时间", "长度", "内容"];
+    var header = ["序号", "年", "年月", "年月日", "小时", "时间", "微博字数", "微博内容"];
     fw.append(file, header.join(','));
 
     var str = "";
