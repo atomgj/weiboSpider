@@ -1,47 +1,21 @@
 var express = require('express');
 var path = require('path');
 var ejs = require('ejs');
-var mongodb = require("mongodb");
 var app = express();
-
+var moment = require('moment');
 var fw = require('./bin/file')(require('fs'));
 var dbFactory = require('./bin/mongod');
-var moment = require('moment');
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'html');
 app.engine('.html', ejs.__express);
 
-var server = new mongodb.Server('localhost', 27017, {auto_reconnect: true});
-var db = new mongodb.Db("weibo", server, {safe: false});
+var wbData = {};
 
-db.open(function (err, db) {
-    if (err) {
-        console.log(err);
-    } else {
-        console.log('mongodb connect!');
-    }
-});
-
-
-var link = function (db) {
-    return function (req, res) {
-        db.collection('财上海', {safe: true}, function (err, collection) {
-            if (err) {
-                console.log(err);
-            } else {
-                var sort = {date: 1};
-                collection.find().sort(sort).toArray(function (err, docs) {
-                    var data = distinctData(docs);
-                    res.render('index', {blogs: data});
-                    writeTxt(data);
-                });
-            }
-        });
-    }
-};
-
-var distinctData = function (data) {
+/**
+ * 数据去重
+ */
+function distinctData(data) {
 
     var i, dataMap = {}, newData = [];
     for (i = 0; i < data.length; i++) {
@@ -52,14 +26,19 @@ var distinctData = function (data) {
 
     for (i in dataMap) {
         if (dataMap.hasOwnProperty(i)) {
+            var date = moment(parseInt(dataMap[i].date.trim(), 10));
+            dataMap[i].date = date.format('YYYY-MM-DD HH:mm:ss');
             newData.push(dataMap[i]);
         }
     }
 
     return newData;
-};
+}
 
-var writeTxt = function (blogs) {
+/**
+ * 写入文件
+ */
+function writeFile(data) {
 
     var i, file = 'dist/财上海.txt';
     fw.write(file);
@@ -69,10 +48,10 @@ var writeTxt = function (blogs) {
 
     var str = "";
 
-    for (i = 0; i < blogs.length; i++) {
+    for (i = 0; i < data.length; i++) {
         var line = [];
-        var date = moment(parseInt(blogs[i].date.trim(), 10));
-        var content = blogs[i].content.trim().replace(/,/g, "，").replace(/\r\n/g, '').replace(/\n/g, '');
+        var date = moment(data[i].date);
+        var content = data[i].content.trim().replace(/,/g, "，").replace(/\r\n/g, '').replace(/\n/g, '');
         line.push(i + 1);
         line.push(date.format('YYYY'));
         line.push(date.format('YYYY-MM'));
@@ -85,11 +64,28 @@ var writeTxt = function (blogs) {
     }
 
     fw.append(file, str);
+}
 
-};
+/**
+ * web server 启动
+ */
+function start(){
+    function callback(){
+        console.log('------query data success------');
+        wbData = distinctData(dbFactory.data);
+        console.log("------start writing to file ...");
+        writeFile(wbData);
+        console.log("------write finished!");
+        app.listen(3000);
+        console.log('------http server start！');
+    }
 
+    console.log('------start mongodb server------');
+    dbFactory.findAll(callback);
+}
 
-app.get('/', link(db));
-app.listen(3000);
+start();
 
-console.log('http server start...');
+app.get('/', function(req, res){
+    res.render('index', {data: wbData});
+});
