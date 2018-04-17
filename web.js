@@ -66,6 +66,38 @@ function writeFile(data) {
     fw.append(file, str);
 }
 
+function writeSimpleText(data){
+    var i, file = 'dist/财上海_simp.txt';
+    fw.write(file);
+    var header = ["时间","微博内容"];
+    fw.append(file, header.join(','));
+    var str = "";
+
+    for (i = 0; i < data.length; i++) {
+        var line = [];
+        var date = moment(data[i].date);
+        var content = data[i].content.trim().replace(/,/g, "，").replace(/\r\n/g, '').replace(/\n/g, '');
+        line.push(date.format('YYYY-MM-DD HH:mm:ss'));
+        line.push(content);
+        str += line.join(',') + '\n';
+    }
+    fw.append(file, str);
+}
+
+function writePureTxtFile(data){
+    var i, file = 'dist/财上海_pure.txt';
+    fw.write(file);
+    var str = "";
+
+    for (i = 0; i < data.length; i++) {
+        var line = [];
+        var content = data[i].content.trim().replace(/,/g, "，").replace(/\r\n/g, '').replace(/\n/g, '');
+        line.push(content);
+        str += line.join(',') + '\n';
+    }
+    fw.append(file, str);
+}
+
 /**
  * web server 启动
  */
@@ -75,6 +107,8 @@ function start(){
         wbData = distinctData(dbFactory.data);
         console.log("------start writing to file ...");
         writeFile(wbData);
+        writeSimpleText(wbData);
+        writePureTxtFile(wbData);
         console.log("------write finished!");
         app.listen(3000);
         console.log('------http server start！');
