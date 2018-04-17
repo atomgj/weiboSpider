@@ -1,14 +1,33 @@
 var Segment = require('segment');
 
 var fs = require('fs');
-
+var fw = require('./bin/file')(fs);
 
 var segment = new Segment();
-segment.useDefault();
+segment
+    .use('URLTokenizer')            // URL识别
+    .use('WildcardTokenizer')       // 通配符，必须在标点符号识别之前
+    .use('PunctuationTokenizer')    // 标点符号识别
+    .use('ForeignTokenizer')        // 外文字符、数字识别，必须在标点符号识别之后
+    // 中文单词识别
+    .use('DictTokenizer')           // 词典识别
+    .use('ChsNameTokenizer')        // 人名识别，建议在词典识别之后
+    // 优化模块
+    .use('EmailOptimizer')          // 邮箱地址识别
+    .use('ChsNameOptimizer')        // 人名识别优化
+    .use('DictOptimizer')           // 词典识别优化
+    .use('DatetimeOptimizer')       // 日期时间识别优化
+    // 字典文件
+    .loadDict('dict.txt')           // 盘古词典
+    .loadDict('dict2.txt')          // 扩展词典（用于调整原盘古词典）
+    .loadDict('names.txt')          // 常见名词、人名
 
-segment.loadSynonymDict('synonym.txt');
-console.log();
+    .loadDict('dicts/csh.txt')
 
+    .loadDict('wildcard.txt', 'WILDCARD', true)   // 通配符
+    .loadSynonymDict('synonym.txt')   // 同义词
+    .loadStopwordDict('stopword.txt') // 停止符
+;
 
 function readFile(callback) {
     var file = 'dist/财上海_pure.txt';
@@ -28,7 +47,6 @@ function startSegment(data) {
         var step1 = segment.doSegment(data[i], {
             simple: true,
             stripPunctuation: true,
-            convertSynonym: true,
             stripStopword: true
         });
 
@@ -56,7 +74,6 @@ function start() {
 
 function finishSegment() {
 
-
     var i, dictArr = [];
     for(i in dictMap){
         if(dictMap.hasOwnProperty(i)){
@@ -69,9 +86,9 @@ function finishSegment() {
             var va, vb, sa;
             va = oa[key];
             vb = ob[key];
-            if (vb < va) {
+            if (vb > va) {
                 sa = 1;
-            } else if (vb > va) {
+            } else if (vb < va) {
                 sa = -1;
             } else {
                 sa = 0;
@@ -81,7 +98,22 @@ function finishSegment() {
     }
     dictArr.sort(compare("c"));
 
-    console.log(dictArr);
+    writeTxt(dictArr);
+    console.log('done!');
+}
+
+function writeTxt(data){
+    var i, file = 'dist/word_freq.txt';
+    fw.write(file);
+    var str = "";
+
+    for (i = 0; i < data.length; i++) {
+        var line = [];
+        line.push(data[i].w);
+        line.push(data[i].c);
+        str += line.join(' | ') + '\n';
+    }
+    fw.append(file, str);
 }
 
 start();
