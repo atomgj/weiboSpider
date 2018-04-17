@@ -21,6 +21,7 @@ segment
     .loadDict('names.txt')          // 常见名词、人名
 
 
+    //加载自定义的词典
     .loadDict('../dicts/csh.txt')
 
     .loadDict('wildcard.txt', 'WILDCARD', true)   // 通配符
