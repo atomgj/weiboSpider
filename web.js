@@ -35,6 +35,12 @@ function distinctData(data) {
     return newData;
 }
 
+function replaceTxt(str){
+    var rts;
+    rts = str.trim().replace(/,/g, "，").replace(/\r\n/g, '').replace(/\n/g, '');
+    return rts;
+}
+
 /**
  * 写入文件
  */
@@ -51,7 +57,7 @@ function writeFile(data) {
     for (i = 0; i < data.length; i++) {
         var line = [];
         var date = moment(data[i].date);
-        var content = data[i].content.trim().replace(/,/g, "，").replace(/\r\n/g, '').replace(/\n/g, '');
+        var content = replaceTxt(data[i].content);
         line.push(i + 1);
         line.push(date.format('YYYY'));
         line.push(date.format('YYYY-MM'));
@@ -76,7 +82,7 @@ function writeSimpleText(data){
     for (i = 0; i < data.length; i++) {
         var line = [];
         var date = moment(data[i].date);
-        var content = data[i].content.trim().replace(/,/g, "，").replace(/\r\n/g, '').replace(/\n/g, '');
+        var content = replaceTxt(data[i].content);
         line.push(date.format('YYYY-MM-DD HH:mm:ss'));
         line.push(content);
         str += line.join(',') + '\n';
@@ -91,11 +97,57 @@ function writePureTxtFile(data){
 
     for (i = 0; i < data.length; i++) {
         var line = [];
-        var content = data[i].content.trim().replace(/,/g, "，").replace(/\r\n/g, '').replace(/\n/g, '');
+        var content = replaceTxt(data[i].content);
         line.push(content);
         str += line.join(',') + '\n';
     }
     fw.append(file, str);
+}
+
+function writeMarkdown(key, data){
+    var i, header, file = 'md/'+key+'.md';
+    header = '---\n' +
+        'title: '+key+'\n' +
+        'date: '+data.date+'\n' +
+        'layout: true\n' +
+        '---\n';
+
+    fw.write(file);
+    fw.append(file, header);
+
+    var str = "";
+
+    for (i = 0; i < data.content.length; i++) {
+        var line = [];
+        var date = moment(data.content[i].date);
+        var content = replaceTxt(data.content[i].content);
+        line.push(date.format('YYYY-MM-DD HH:mm:ss'));
+        line.push(content);
+        str += '\n>'+line.join('\n>') + '\n---\n';
+    }
+    fw.append(file, str);
+}
+
+function writeMarkdownFile(data){
+    var i, map = {}, date, month, lastDay;
+    for(i = 0; i < data.length; i++){
+        date = moment(data[i].date);
+        month = date.format('YYYY年第ww周');
+        lastDay = moment(data[i].date).endOf('w').format('YYYY-MM-DD');
+        if(!map[month]){
+            map[month] = {
+                date: lastDay,
+                content: []
+            };
+        }
+        map[month].content.push(data[i]);
+    }
+
+    for(i in map){
+        if(map.hasOwnProperty(i)){
+            writeMarkdown(i, map[i]);
+        }
+    }
 }
 
 /**
@@ -109,6 +161,7 @@ function start(){
         writeFile(wbData);
         writeSimpleText(wbData);
         writePureTxtFile(wbData);
+        writeMarkdownFile(wbData);
         console.log("------write finished!");
         app.listen(3000);
         console.log('------http server start！');
